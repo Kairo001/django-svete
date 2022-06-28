@@ -4,12 +4,27 @@
 	import Register from "./pages/Register.svelte"
 
 	import Router, {link} from 'svelte-spa-router'
+  import axios from "axios";
+  import { authenticated } from "./store/auth";
 
 	const routes = {
 		'/': Home,
 		'/login': Login,
 		'/register': Register
 	}
+
+  let auth = false
+
+  authenticated.subscribe(value => auth = value)
+
+  $: logout = async () => {
+    await axios.post('logout/', {}, {withCredentials:true})
+
+    axios.defaults.headers.common['Authorization'] = ''
+
+    authenticated.set(false)
+  }
+
 </script>
 
 <header class="p-3 bg-dark text-white">
@@ -23,10 +38,18 @@
           <input type="search" class="form-control form-control-dark" placeholder="Search..." aria-label="Search">
         </form> -->
 
-        <div class="text-end">
-          <a href="/login" use:link type="button" class="btn btn-outline-light me-2">Iniciar sesión</a>
-          <a href="/register" use:link type="button" class="btn btn-outline-light me-2">Registarse</a>
-        </div>
+        {#if auth}
+          <div class="text-end">
+            <a href="/login" use:link class="btn btn-outline-light me-2"
+              on:click={logout}
+            >Cerrar sesión</a>
+          </div>
+        {:else}
+          <div class="text-end">
+            <a href="/login" use:link class="btn btn-outline-light me-2">Iniciar sesión</a>
+            <a href="/register" use:link class="btn btn-outline-light me-2">Registarse</a>
+          </div>
+        {/if}
       </div>
     </div>
 </header>
